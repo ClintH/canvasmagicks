@@ -1,0 +1,674 @@
+[
+  {
+    "week": 36,
+    "title": "Course introduction; Lenz",
+    "date": "2026-08-31",
+    "startTime": "9:15",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 36,
+    "title": "Reflective journaling introduction",
+    "date": "2026-08-31",
+    "startTime": "13:15",
+    "endTime": "15:00",
+    "involved": [
+      "JN"
+    ],
+    "responsible": "JN"
+  },
+  {
+    "week": 36,
+    "title": "M1 Kick-off: Way of working, models of IX, nuance, buttons",
+    "date": "2026-09-01",
+    "startTime": "9:15",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 36,
+    "title": "Coaching",
+    "date": "2026-09-01",
+    "startTime": "13:00",
+    "endTime": "15:00",
+    "involved": [
+      "JN"
+    ]
+  },
+  {
+    "week": 36,
+    "title": "Coding Bootcamp",
+    "date": "2026-09-02",
+    "startTime": "10:15",
+    "endTime": "17:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 36,
+    "title": "Coaching",
+    "date": "2026-09-03",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "JN"
+    ]
+  },
+  {
+    "week": 36,
+    "title": "Coding Recap",
+    "date": "2026-09-03",
+    "startTime": "13:00",
+    "endTime": "17:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 36,
+    "title": "Literature seminar - Heyer",
+    "date": "2026-09-04",
+    "startTime": "14:00",
+    "endTime": "16:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 37,
+    "title": "Process revisiting. Where we are, what's next",
+    "date": "2026-09-07",
+    "startTime": "9:30",
+    "endTime": "10:30",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 37,
+    "title": "Technique: Interpolation; Oscillators",
+    "date": "2026-09-07",
+    "startTime": "10:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 37,
+    "title": "Technique: Envelopes",
+    "date": "2026-09-07",
+    "startTime": "13:00",
+    "endTime": "15:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 37,
+    "title": "Coaching",
+    "date": "2026-09-08",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JN"
+    ]
+  },
+  {
+    "week": 37,
+    "title": "Code Recap",
+    "date": "2026-09-10",
+    "startTime": "10:00",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 37,
+    "title": "Coaching",
+    "date": "2026-09-10",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "JN"
+    ]
+  },
+  {
+    "week": 37,
+    "title": "Mid Show'n'tell",
+    "date": "2026-09-11",
+    "startTime": "9:30",
+    "endTime": "11:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 37,
+    "title": "Coaching",
+    "date": "2026-09-11",
+    "startTime": "13:00",
+    "endTime": "15:00",
+    "involved": [],
+    "responsible": "CH"
+  },
+  {
+    "week": 38,
+    "title": "Coaching",
+    "date": "2026-09-14",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JN"
+    ]
+  },
+  {
+    "week": 38,
+    "title": "Technique: Things model",
+    "date": "2026-09-15",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 38,
+    "title": "Journal feedback session 1",
+    "date": "2026-09-15",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "JN"
+    ],
+    "responsible": "JN"
+  },
+  {
+    "week": 38,
+    "title": "Literature seminar Halse & Boffi; Forlizzi et al",
+    "date": "2026-09-17",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "JP"
+    ],
+    "responsible": "JP"
+  },
+  {
+    "week": 38,
+    "title": "Show'n'tell",
+    "date": "2026-09-18",
+    "startTime": "13:00",
+    "endTime": "15:30",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ]
+  },
+  {
+    "week": 38,
+    "title": "M1 Exam",
+    "date": "2026-09-18",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ]
+  },
+  {
+    "week": 39,
+    "title": "M2 Kick-off",
+    "date": "2026-09-21",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 39,
+    "title": "Coaching",
+    "date": "2026-09-21",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "JN"
+    ]
+  },
+  {
+    "week": 39,
+    "title": "Literature seminar",
+    "date": "2026-09-22",
+    "startTime": "10:00",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 39,
+    "title": "Coaching",
+    "date": "2026-09-22",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "JN"
+    ]
+  },
+  {
+    "week": 39,
+    "title": "Technique",
+    "date": "2026-09-24",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JN"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 39,
+    "title": "Coaching",
+    "date": "2026-09-24",
+    "startTime": "13:00",
+    "endTime": "15:00",
+    "involved": [
+      "JN"
+    ]
+  },
+  {
+    "week": 39,
+    "title": "Coaching / Journal feedback session 2",
+    "date": "2026-09-25",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ],
+    "responsible": "JN"
+  },
+  {
+    "week": 39,
+    "title": "Literature Seminar",
+    "date": "2026-09-25",
+    "startTime": "13:00",
+    "endTime": "15:00",
+    "involved": [
+      "JN"
+    ],
+    "responsible": "JP"
+  },
+  {
+    "week": 40,
+    "title": "Check-ins & Technique",
+    "date": "2026-09-28",
+    "startTime": "9:30",
+    "endTime": "14:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 40,
+    "title": "Coaching",
+    "date": "2026-09-29",
+    "startTime": "9:30",
+    "endTime": "15:00",
+    "involved": [
+      "JP",
+      "JN"
+    ]
+  },
+  {
+    "week": 40,
+    "title": "Coaching",
+    "date": "2026-10-01",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JN"
+    ]
+  },
+  {
+    "week": 40,
+    "title": "Mid Show'n'tell",
+    "date": "2026-10-02",
+    "startTime": "13:00",
+    "endTime": "15:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ]
+  },
+  {
+    "week": 41,
+    "title": "Lecture",
+    "date": "2026-10-05",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 41,
+    "title": "Coaching",
+    "date": "2026-10-05",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "CH",
+      "JN"
+    ]
+  },
+  {
+    "week": 41,
+    "title": "Coaching",
+    "date": "2026-10-06",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JN"
+    ]
+  },
+  {
+    "week": 41,
+    "title": "Coaching",
+    "date": "2026-10-08",
+    "startTime": "9:30",
+    "endTime": "15:00",
+    "involved": [
+      "JP"
+    ]
+  },
+  {
+    "week": 41,
+    "title": "Show'n'tell",
+    "date": "2026-10-09",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 41,
+    "title": "M2 Exam",
+    "date": "2026-10-09",
+    "startTime": "13:00",
+    "endTime": "15:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 42,
+    "title": "M3: Kick-off",
+    "date": "2026-10-12",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ]
+  },
+  {
+    "week": 42,
+    "title": "Lecture/Activity",
+    "date": "2026-10-12",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "JP"
+    ],
+    "responsible": "JP"
+  },
+  {
+    "week": 42,
+    "title": "Techniques",
+    "date": "2026-10-13",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 42,
+    "title": "Coaching",
+    "date": "2026-10-13",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "JP"
+    ]
+  },
+  {
+    "week": 42,
+    "title": "Coaching",
+    "date": "2026-10-15",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JP"
+    ]
+  },
+  {
+    "week": 42,
+    "title": "Coaching",
+    "date": "2026-10-16",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JP"
+    ]
+  },
+  {
+    "week": 43,
+    "title": "Literature Seminar",
+    "date": "2026-10-19",
+    "startTime": "10:00",
+    "endTime": "12:00",
+    "involved": [
+      "JP"
+    ],
+    "responsible": "JP"
+  },
+  {
+    "week": 43,
+    "title": "Coaching",
+    "date": "2026-10-19",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "CH",
+      "JP"
+    ]
+  },
+  {
+    "week": 43,
+    "title": "Online essay topic feedback",
+    "date": "2026-10-20",
+    "startTime": "9:30",
+    "endTime": "16:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 43,
+    "title": "Coaching",
+    "date": "2026-10-20",
+    "startTime": "9:30",
+    "endTime": "15:00",
+    "involved": [
+      "JP"
+    ]
+  },
+  {
+    "week": 43,
+    "title": "Coaching",
+    "date": "2026-10-22",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH"
+    ]
+  },
+  {
+    "week": 43,
+    "title": "Mid Show'n'tell",
+    "date": "2026-10-23",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 44,
+    "title": "Coaching",
+    "date": "2026-10-26",
+    "startTime": "9:30",
+    "endTime": "15:00",
+    "involved": [
+      "JP"
+    ]
+  },
+  {
+    "week": 44,
+    "title": "Online essay topic feedback",
+    "date": "2026-10-26",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 44,
+    "title": "Coaching",
+    "date": "2026-10-27",
+    "startTime": "13:00",
+    "endTime": "16:00",
+    "involved": [
+      "CH",
+      "JP"
+    ]
+  },
+  {
+    "week": 44,
+    "title": "Coaching",
+    "date": "2026-10-29",
+    "startTime": "9:30",
+    "endTime": "15:00",
+    "involved": [
+      "JP",
+      "JN"
+    ]
+  },
+  {
+    "week": 44,
+    "title": "Show'n'tell",
+    "date": "2026-10-30",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ]
+  },
+  {
+    "week": 44,
+    "title": "M3 Exam",
+    "date": "2026-10-30",
+    "startTime": "13:00",
+    "endTime": "15:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 45,
+    "title": "Online essay topic feedback",
+    "date": "2026-11-02",
+    "startTime": "9:30",
+    "endTime": "17:00",
+    "involved": [
+      "CH"
+    ],
+    "responsible": "CH"
+  },
+  {
+    "week": 45,
+    "title": "Course evaluation",
+    "date": "2026-11-03",
+    "startTime": "9:30",
+    "endTime": "12:00",
+    "involved": [
+      "CH",
+      "JP",
+      "JN"
+    ]
+  },
+  {
+    "week": 45,
+    "title": "Exam 1 deadline",
+    "date": "2026-11-06",
+    "startTime": "17:00",
+    "endTime": "17:00",
+    "involved": []
+  }
+]
