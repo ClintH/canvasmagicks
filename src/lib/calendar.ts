@@ -2,14 +2,16 @@ import type { CanvasConfig } from "./config";
 import { CanvasClient, buildForm } from "./client";
 import {
   CalendarEventSchema,
+  CalendarEventFullSchema,
   CreateEventInputSchema,
   CanvasCourseSchema,
   type CalendarEvent,
+  type CalendarEventFull,
   type CanvasCourse,
   type CreateEventInput,
 } from "./schemas";
 
-export type { CalendarEvent, CanvasCourse, CreateEventInput } from "./schemas";
+export type { CalendarEvent, CalendarEventFull, CanvasCourse, CreateEventInput } from "./schemas";
 
 // Interpret the wall-clock time as the CLI machine's local time and store it as
 // a UTC instant. This is correct under the "use the machine timezone" decision.
@@ -45,6 +47,20 @@ export async function listCourseEvents(
     "context_codes[]": `course_${courseId}`,
   });
   return CalendarEventSchema.array().parse(json);
+}
+
+export async function listCourseEventsFull(
+  config: CanvasConfig,
+  courseId: number | string,
+): Promise<CalendarEventFull[]> {
+  const client = new CanvasClient(config);
+  const json = await client.getAll("calendar_events", {
+    type: "event",
+    all_events: true,
+    per_page: 100,
+    "context_codes[]": `course_${courseId}`,
+  });
+  return CalendarEventFullSchema.array().parse(json);
 }
 
 export async function createEvent(

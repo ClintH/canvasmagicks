@@ -58,8 +58,9 @@ function buildIcalDescription(activity: Activity): string {
   return parts.join("\n\n");
 }
 
-export function renderIcal(activities: Activity[], nowIso?: string): string {
+export function renderIcal(activities: Activity[], prefix?: string, nowIso?: string): string {
   const dtstamp = nowIso ? toIcalUtc(nowIso) : dtStampNow();
+  const cleanPrefix = prefix?.trim() ?? "";
   const lines: string[] = [];
   lines.push("BEGIN:VCALENDAR");
   lines.push("VERSION:2.0");
@@ -67,7 +68,8 @@ export function renderIcal(activities: Activity[], nowIso?: string): string {
   lines.push("CALSCALE:GREGORIAN");
 
   activities.forEach((activity, idx) => {
-    const title = formatEventTitle(activity);
+    const rawTitle = formatEventTitle(activity);
+    const title = cleanPrefix ? `${cleanPrefix} ${rawTitle}` : rawTitle;
     const description = buildIcalDescription(activity);
     const startIso = toIso(activity.date, activity.startTime);
     const endIso = toIso(activity.date, activity.endTime);

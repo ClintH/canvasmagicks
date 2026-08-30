@@ -7,12 +7,14 @@ Full reference for all commands. For a quick overview see `USAGE.md`.
 Translates a Canvas activities JSON file (see `example/schedule.json`) into either Markdown or iCal, optionally filtered by who is responsible or involved.
 
 ```
-canvas calendar translate --output <path> [--source <path>] [--who <names>]
+canvasmagicks calendar translate --output <path> [--source <path>] [--who <names>] [--prefix <text>] [--filter-title <text>]
 ```
 
 - `--source <path>` / `-s <path>` — path to the calendar JSON file. If omitted, you are prompted (defaults to `example/schedule.json`).
 - `--output <path>` / `-o <path>` — **required** output file. If it ends with `.md`, Markdown is written; if it ends with `.ics`, an iCal file is written. If omitted, you are prompted. Unsupported extensions error with `Use .md for Markdown or .ics for iCal`.
 - `--who <names>` — optional comma-separated list of names (e.g. `--who ch,jp`). Matching is case-insensitive; an activity is included if any of the names equals its `responsible` or appears in `involved`. If omitted or empty, all entries are exported. In interactive mode you are prompted (`empty for all`). For each requested name with zero matches a warning is printed: `Warning: no entries for '<name>'`. If the filter matches nothing, a warning `Warning: filter matched 0 activities` is printed; the `.ics` file is written as an empty calendar (no `VEVENT`s), and the `.md` file contains `No activities matched filter: <names>` beneath the `_Generated ..._` line.
+- `--prefix <text>` — optional prefix for ICS event summaries. If set, each `SUMMARY` becomes `<prefix> <title>` (e.g. `--prefix Private` with title `Dinner` → `Private Dinner`). When writing `.ics` and omitted, you are prompted (`Prefix for ICS event summaries (empty for none)`); empty input means no prefix. Ignored for `.md` output.
+- `--filter-title <text>` — optional case-insensitive substring filter on `title`. Only events whose title contains the text are exported. In interactive mode prompted (`Filter by title (substring, empty for all)`); empty means no filter. Combine with `--who` via AND.
 
 Invalid JSON data is reported per-activity with the offending field name, e.g. `Activity 4: field 'startTime' is required but missing`.
 
@@ -42,16 +44,18 @@ Invalid JSON data is reported per-activity with the offending field name, e.g. `
 #### iCal (`.ics`)
 
 - A `VCALENDAR` (`VERSION:2.0`, `PRODID:-//canvasmagicks//EN`) with one `VEVENT` per matched activity.
-- `SUMMARY` is the activity title with participants (same encoding as Markdown), `DTSTART`/`DTEND` are UTC (`...Z`) derived from the activity's local wall-clock time, `DESCRIPTION` contains `Involved`/`Responsible`/`notes`, `LOCATION` if present, `UID` is deterministic per activity, `DTSTAMP` is now. Lines are folded per RFC 5545.
+- `SUMMARY` is the activity title with participants (same encoding as Markdown), optionally prefixed (e.g. `Private Dinner` when `--prefix Private`), `DTSTART`/`DTEND` are UTC (`...Z`) derived from the activity's local wall-clock time, `DESCRIPTION` contains `Involved`/`Responsible`/`notes`, `LOCATION` if present, `UID` is deterministic per activity, `DTSTAMP` is now. Lines are folded per RFC 5545.
 
 All translation is local; it does not talk to the Canvas API and does not require authentication.
 
 Examples:
 
 ```
-canvas calendar translate --source example/schedule.json --output out.md
-canvas calendar translate --source example/schedule.json --output out.ics --who CH,JP
-canvas calendar translate --source example/schedule.json --output filtered.md --who ch
+canvasmagicks calendar translate --source example/schedule.json --output out.md
+canvasmagicks calendar translate --source example/schedule.json --output out.ics --who CH,JP
+canvasmagicks calendar translate --source example/schedule.json --output filtered.md --who ch
+canvasmagicks calendar translate --source example/schedule.json --output out.ics --who ch --prefix Private
+canvasmagicks calendar translate --source example/schedule.json --output out.ics --prefix "My Course"
 ```
 
 ## course
@@ -59,31 +63,31 @@ canvas calendar translate --source example/schedule.json --output filtered.md --
 Sets the default course used by other commands, so you don't have to pick it every time.
 
 ```
-canvas course
+canvasmagicks course
 ```
 
 It loads the list of your courses (from a one-hour local cache), lets you type to narrow the list, and pick one. The selection is saved to your settings (`defaultCourseId` / `defaultCourseCode` in `~/.config/canvasmagicks/config.json`).
 
-After a default is set, any command that needs a course offers it first: press ENTER to accept the default, or keep typing to choose a different one. You can change the saved default at any time by running `canvas course` again.
+After a default is set, any command that needs a course offers it first: press ENTER to accept the default, or keep typing to choose a different one. You can change the saved default at any time by running `canvasmagicks course` again.
 
-The course list is cached on disk for one hour; every place that lists courses (this command, `canvas courses`, and course selection in other commands) reads from that cache.
+The course list is cached on disk for one hour; every place that lists courses (this command, `canvasmagicks courses`, and course selection in other commands) reads from that cache.
 
 ## page ls
 
 Lists all pages in a course and shows their `slug` (the `url` identifier, used by the `page target` / `page write` commands).
 
 ```
-canvas page ls [--course <code>]
+canvasmagicks page ls [--course <code>]
 ```
 
 - `--course <code>` / `-c <code>` — list pages for this course code (e.g. `VT2025-KD413A-K3548`), overriding the saved default course. If omitted, the saved default is offered first.
 
 ## page target
 
-Sets the "target" page. Like `canvas course` does for courses, this pins a page so other commands (notably `page write`) default to it. The target is **persisted for one hour** and is **linked to the course**: if the target course changes, the target page is forgotten.
+Sets the "target" page. Like `canvasmagicks course` does for courses, this pins a page so other commands (notably `page write`) default to it. The target is **persisted for one hour** and is **linked to the course**: if the target course changes, the target page is forgotten.
 
 ```
-canvas page target [--course <code>] [--page <slug>]
+canvasmagicks page target [--course <code>] [--page <slug>]
 ```
 
 - `--course <code>` / `-c <code>` — choose the page from this course code, overriding the saved default course.
@@ -111,24 +115,47 @@ Flow when prompts are not skipped: choose a course (defaulting to the target cou
 Exports course page(s) as Markdown files, converting Canvas HTML back to Markdown.
 
 ```
-canvas page export [--output <path>] [--course <code>] [--page <slug>] [--dry-run]
+canvasmagicks page export [--output <path>] [--course <code>] [--page <slug>] [--dry-run]
 ```
 
 - `--output <path>` / `-o <path>` — output directory for Markdown files. Created if it doesn't exist. If omitted, you are prompted for the directory.
-- `--course <code>` / `-c <code>` — export pages from this course code, overriding the saved default course. If omitted, the target course (from `canvas page target`) is offered first.
-- `--page <slug>` / `-p <slug>` — export a specific page by its slug, skipping the picker. If omitted, the target page (from `canvas page target`) is exported if set, otherwise all pages for the chosen course are exported.
+- `--course <code>` / `-c <code>` — export pages from this course code, overriding the saved default course. If omitted, the target course (from `canvasmagicks page target`) is offered first.
+- `--page <slug>` / `-p <slug>` — export a specific page by its slug, skipping the picker. If omitted, the target page (from `canvasmagicks page target`) is exported if set, otherwise all pages for the chosen course are exported.
 - `--dry-run` — show which pages would be exported without writing files. Honoured above all else.
 
-Each page is saved as `<slug>.md` (e.g. `about.md`). The slug is the page's `url` identifier as shown by `canvas page ls`.
+Each page is saved as `<slug>.md` (e.g. `about.md`). The slug is the page's `url` identifier as shown by `canvasmagicks page ls`.
 
 Flow when prompts are not skipped: choose a course, then either a specific page or all pages are exported to the chosen output directory.
+
+## calendar download
+
+Fetches calendar events from a Canvas course and writes them locally. Requires authentication (`canvas auth`).
+
+```
+canvasmagicks calendar download --output <path> [--course <code>] [--prefix <text>] [--filter-title <text>]
+```
+
+- `--course <code>` / `-c <code>` — course code to download from (e.g. `VT2025-KD413A-K3548`). If omitted, you are prompted with the searchable picker (default course pinned).
+- `--output <path>` / `-o <path>` — **required** output file. Extension decides format: `.json` writes the full Canvas `CalendarEvent` objects (all fields from `canvas-api.txt:11394` – `location_address`, `effective_context_code`, `context_name`, `all_context_codes`, `hidden`, `parent_event_id`, `child_events`, `url`, `html_url`, `all_day`, `created_at`, `updated_at`, `appointment_group_*`, `important_dates`, `series_*`, `rrule`, `blackout_date`, etc., pretty-printed); `.md` writes a simple Markdown list (`# Calendar Events` + `_Generated …_` + `YYYY-MM-DD Dow HH:MM-HH:MM Title @ location` per event); `.ics` writes a `VCALENDAR` with `VEVENT`s (`SUMMARY` optionally prefixed, `DTSTART`/`DTEND` UTC, `DESCRIPTION`/`LOCATION`). Unsupported extensions error with `Use .json, .md or .ics`.
+- `--prefix <text>` — prefix for ICS `SUMMARY` (e.g. `--prefix Private` → `Private Dinner`). Prompted if omitted when writing `.ics` in interactive mode (`Prefix for ICS event summaries (empty for none)`); ignored for `.json`/`.md`.
+- `--filter-title <text>` — optional case-insensitive substring filter on `title`. Only events whose title contains the text are exported. Prompted in interactive mode (`Filter by title (substring, empty for all)`); empty means no filter.
+
+Flow: authenticate → resolve course → resolve output → (if `.ics` and interactive prompt prefix) → `GET /api/v1/calendar_events?type=event&all_events=true&context_codes[]=course_<id>` (paginated, like `calendar nuke`/`sync`) → filter to `context_code === course_<id>` and `type==="event"` → write file. If no events, warns `no calendar events found in course '…'` and writes empty file (`[]` for JSON, empty calendar for ICS, `No events found.` for MD). The JSON path uses `CalendarEventFullSchema` (full richness, `.passthrough()`); MD/ICS intentionally use the minimal `CalendarEvent` fields for simpler output.
+
+Examples:
+
+```
+canvasmagicks calendar download --output events.json --course VT2025-KD413A-K3548
+canvasmagicks calendar download --output events.ics --course VT2025-KD413A-K3548 --prefix Private
+canvasmagicks calendar download --output events.md
+```
 
 ## calendar nuke
 
 Deletes **every calendar event** from a course. This is destructive and irreversible, so it always asks for confirmation.
 
 ```
-canvas calendar nuke [--course <code>] [--dry-run]
+canvasmagicks calendar nuke [--course <code>] [--dry-run]
 ```
 
 - `--course <code>` / `-c <code>` — nuke the calendar of this course code (e.g. `VT2025-KD413A-K3548`), overriding the saved default course. If omitted, the saved default is offered first.
@@ -141,7 +168,7 @@ Flow: pick a course, see how many calendar events it has, then confirm the delet
 Read-only analysis: shows the difference between a calendar JSON file and a course's Canvas calendar. It never writes to Canvas — it only reports what would change if you re-imported.
 
 ```
-canvas calendar sync [--source <path>] [--course <code>]
+canvasmagicks calendar sync [--source <path>] [--course <code>]
 ```
 
 - `--source <path>` / `-s <path>` — read this calendar JSON file instead of prompting.
@@ -160,7 +187,7 @@ The comparison reuses `calendar import`'s encoding so only genuine edits are rep
 Imports a validated activities JSON file into a Canvas course calendar. After reading the file it prompts for a default location (applied to every activity missing one), a description option, and the target course. Event titles always encode the responsible person (`!Name`) and other participants, so there is no separate title prompt. Existing events are merged or wiped per your choice, with per-conflict resolution.
 
 ```
-canvas calendar import [--source <path>] [--course <code>] [--dry-run]
+canvasmagicks calendar import [--source <path>] [--course <code>] [--dry-run]
 ```
 
 - `--source <path>` / `-s <path>` — read this file instead of prompting for the path.

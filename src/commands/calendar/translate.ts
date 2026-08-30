@@ -43,10 +43,17 @@ function findMissingNames(activities: Activity[], whoLower: string[]): Set<strin
   return missing;
 }
 
-function buildMarkdownWithEmptyWarning(filtered: Activity[], whoOriginal: string[]): string {
+function buildMarkdownWithEmptyWarning(
+  filtered: Activity[],
+  whoOriginal: string[],
+  filterTitle?: string,
+): string {
   if (filtered.length > 0) return renderMarkdown(filtered);
   const base = renderMarkdown([]);
-  const warning = `No activities matched filter: ${whoOriginal.join(", ")}`;
+  const parts: string[] = [];
+  if (whoOriginal.length > 0) parts.push(whoOriginal.join(", "));
+  if (filterTitle?.trim()) parts.push(`title contains '${filterTitle.trim()}'`);
+  const warning = parts.length > 0 ? `No activities matched filter: ${parts.join(", ")}` : "No activities matched filter.";
   // Insert warning after _Generated line
   const lines = base.split("\n");
   const genIdx = lines.findIndex((l) => l.startsWith("_Generated"));
@@ -57,10 +64,18 @@ function buildMarkdownWithEmptyWarning(filtered: Activity[], whoOriginal: string
   return `${base}\n${warning}\n`;
 }
 
+function filterByTitle<T extends { title: string }>(items: T[], filterTitle?: string): T[] {
+  const needle = filterTitle?.trim().toLowerCase();
+  if (!needle) return items;
+  return items.filter((i) => i.title.toLowerCase().includes(needle));
+}
+
 export async function runCalendarTranslate(opts: {
   source?: string;
   output?: string;
   who?: string;
+  prefix?: string;
+  filterTitle?: string;
 } = {}): Promise<void> {
   const needsInteractive = opts.source === undefined || opts.output === undefined;
   const filePath =
@@ -100,6 +115,15 @@ export async function runCalendarTranslate(opts: {
 
   const { original: whoOriginal, lower: whoLower } = parseWho(whoRaw);
 
+  let filterTitle = opts.filterTitle;
+  if (filterTitle === undefined && needsInteractive) {
+    filterTitle = await input({
+      message: "Filter by title (substring, empty for all):",
+      default: "",
+    });
+  }
+  const cleanFilterTitle = filterTitle?.trim() ?? "";
+
   const lowerExt = outputPath.toLowerCase();
   const isMd = lowerExt.endsWith(".md");
   const isIcs = lowerExt.endsWith(".ics");
@@ -108,6 +132,15 @@ export async function runCalendarTranslate(opts: {
     process.exitCode = 1;
     return;
   }
+
+  let prefix = opts.prefix;
+  if (isIcs && prefix === undefined && needsInteractive) {
+    prefix = await input({
+      message: "Prefix for ICS event summaries (empty for none):",
+      default: "",
+    });
+  }
+  const cleanPrefix = prefix?.trim() ?? "";
 
   let text: string;
   try {
@@ -130,6 +163,7 @@ export async function runCalendarTranslate(opts: {
 
   const total = parsed.data.length;
   let filtered = filterByWho(parsed.data, whoLower);
+  filtered = filterByTitle(filtered, cleanFilterTitle);
 
   if (whoLower.length > 0) {
     const missing = findMissingNames(parsed.data, whoLower);
@@ -141,12 +175,15 @@ export async function runCalendarTranslate(opts: {
       console.warn(`Warning: filter matched 0 activities (requested: ${whoOriginal.join(", ")})`);
     }
   }
+  if (cleanFilterTitle && filtered.length === 0) {
+    console.warn(`Warning: filter-title '${cleanFilterTitle}' matched 0 activities`);
+  }
 
   let content: string;
   if (isMd) {
-    content = buildMarkdownWithEmptyWarning(filtered, whoOriginal);
+    content = buildMarkdownWithEmptyWarning(filtered, whoOriginal, cleanFilterTitle);
   } else {
-    content = renderIcal(filtered);
+    content = renderIcal(filtered, cleanPrefix);
   }
 
   try {
@@ -185,8 +222,18 @@ export const calendarTranslate = command({
       long: "who",
       description: "Comma-separated list of names to filter by (responsible or involved, case-insensitive).",
     }),
+    prefix: option({
+      type: optional(string),
+      long: "prefix",
+      description: "Prefix for ICS event summaries (e.g. --prefix \"Private\" → \"Private <title>\"). Prompted if omitted when writing .ics.",
+    }),
+    filterTitle: option({
+      type: optional(string),
+      long: "filter-title",
+      description: "Only export events whose title contains this text (case-insensitive substring).",
+    }),
   },
-  handler: async ({ source, output, who }) => {
-    await runCalendarTranslate({ source, output, who });
+  handler: async ({ source, output, who, prefix, filterTitle }) => {
+    await runCalendarTranslate({ source, output, who, prefix, filterTitle });
   },
 });
