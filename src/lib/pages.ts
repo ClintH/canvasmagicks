@@ -68,3 +68,15 @@ export function findPageBySlug(
   const s = slug.trim().toLowerCase();
   return pages.find((p) => p.url.trim().toLowerCase() === s);
 }
+
+export async function getPage(
+  config: CanvasConfig,
+  courseId: number | string,
+  pageUrl: string,
+): Promise<CanvasPage> {
+  const client = new CanvasClient(config);
+  return (await client.get(
+    `courses/${courseId}/pages/${encodeURIComponent(pageUrl)}`,
+    { include: "body" },
+  )) as CanvasPage;
+}

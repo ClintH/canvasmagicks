@@ -116,6 +116,29 @@ Flow when prompts are not skipped: choose a course (defaulting to the target cou
 a page (defaulting to the target page), then provide the Markdown source file. On success the
 target page is refreshed so subsequent runs keep defaulting to it.
 
+## page export
+
+Exports course page(s) as Markdown files, converting Canvas HTML back to Markdown.
+
+```
+canvas page export [--output <path>] [--course <code>] [--page <slug>] [--dry-run]
+```
+
+- `--output <path>` / `-o <path>` — output directory for Markdown files. Created if it doesn't
+  exist. If omitted, you are prompted for the directory.
+- `--course <code>` / `-c <code>` — export pages from this course code, overriding the saved
+  default course. If omitted, the target course (from `canvas page target`) is offered first.
+- `--page <slug>` / `-p <slug>` — export a specific page by its slug, skipping the picker. If
+  omitted, the target page (from `canvas page target`) is exported if set, otherwise all pages
+  for the chosen course are exported.
+- `--dry-run` — show which pages would be exported without writing files. Honoured above all else.
+
+Each page is saved as `<slug>.md` (e.g. `about.md`). The slug is the page's `url` identifier
+as shown by `canvas page ls`.
+
+Flow when prompts are not skipped: choose a course, then either a specific page or all pages
+are exported to the chosen output directory.
+
 ## calendar nuke
 
 Deletes **every calendar event** from a course. This is destructive and irreversible, so it

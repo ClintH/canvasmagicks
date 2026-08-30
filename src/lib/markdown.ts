@@ -1,9 +1,17 @@
 import { marked } from "marked";
+import TurndownService from "turndown";
 import { formatEventTitle, type Activity } from "./activities";
+
+const td = new TurndownService();
 
 // Converts Markdown into the HTML that Canvas expects for wiki page bodies.
 export async function markdownToHtml(md: string): Promise<string> {
   return marked.parse(md);
+}
+
+// Converts HTML (Canvas page body) into Markdown.
+export function htmlToMarkdown(html: string): string {
+  return td.turndown(html);
 }
 
 function sortByDateTime(list: Activity[]): Activity[] {

@@ -2,6 +2,7 @@ import { subcommands } from "cmd-ts";
 import { pageLs } from "./ls";
 import { pageTarget } from "./target";
 import { pageWrite } from "./write";
+import { pageExport } from "./export";
 
 export const pageCmd = subcommands({
   name: "page",
@@ -9,5 +10,6 @@ export const pageCmd = subcommands({
     ls: pageLs,
     target: pageTarget,
     write: pageWrite,
+    export: pageExport,
   },
 });
