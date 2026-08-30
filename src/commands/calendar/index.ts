@@ -1,7 +1,7 @@
 import { subcommands } from "cmd-ts";
 import { calendarNuke } from "./nuke";
 import { calendarImport } from "./import";
-import { calendarImportMarkdown } from "./import-markdown";
+import { calendarTranslate } from "./translate";
 import { calendarSync } from "./sync";
 
 export const calendarCmd = subcommands({
@@ -9,7 +9,7 @@ export const calendarCmd = subcommands({
   cmds: {
     nuke: calendarNuke,
     import: calendarImport,
-    "import-markdown": calendarImportMarkdown,
+    translate: calendarTranslate,
     sync: calendarSync,
   },
 });
