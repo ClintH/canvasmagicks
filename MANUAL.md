@@ -195,3 +195,58 @@ canvasmagicks calendar import [--source <path>] [--course <code>] [--dry-run]
 - `--dry-run` — report what would change (add/replace/keep counts) without making any changes to Canvas. The wipe, delete, and staffing-page steps are likewise skipped.
 
 During the preliminary questions you are also asked whether to update a course page whose title starts with `Staffing_` with the schedule overview. If such a page already exists its body is replaced; otherwise a new **unpublished** page named `Staffing_ <course name>` is created. The overview is the same Markdown produced by `canvas calendar translate --output ... .md`, converted to HTML (via the shared Markdown→HTML helper used by `canvas page write`) before being written to the page body.
+
+## exams ls
+
+Lists all assignments in a course (id, name, due date, points, submission types).
+
+```
+canvasmagicks exams ls [--course <code>]
+```
+
+- `--course <code>` / `-c <code>` — list assignments for this course code, overriding the saved default course. If omitted, the saved default is offered first.
+
+Flow: authenticate → resolve course (pre-selected via `--course` or the saved default) → `GET /api/v1/courses/:course_id/assignments?per_page=100&order_by=due_at` (paginated).
+
+## exams get
+
+Downloads all submissions for one assignment: student names/ids, submission date/time, text body, URL, file attachments, comments, grades, and plagiarism data (`turnitin_data` similarity scores plus any `originality_*`/`vericite` fields the API returns). Read-only; it never grades or modifies Canvas.
+
+```
+canvasmagicks exams get [--course <code>] [--assignment <id>] [--exam <id>] [--output <path>] [--attachments <yes|no>]
+```
+
+- `--course <code>` / `-c <code>` — course code, overriding the saved default course. If omitted, the saved default is offered first. Required in the sense that a course must be resolved (arg or default) before anything is fetched.
+- `--assignment <id>` / `-a <id>` — numeric assignment id (see `canvasmagicks exams ls`). Strictly matched against assignments in the resolved course; unknown ids error without touching other courses. If omitted (and no `--exam`/target), a searchable picker lists the course's assignments.
+- `--exam <id>` / `-e <id>` — exam (assignment) id, overriding `--assignment` and the target exam.
+- `--output <path>` / `-o <path>` — output file. Extension decides format: `.json` writes the full submission objects (pretty-printed, including `student_name` and `local_files`); `.md` writes one `# <student name>` top-level section per student (sorted by last name) with submission date/time, score, text, URL/files as compact `Url: …` / `File: name (size) [canvas](…)` lines, plagiarism, and comments; `.xlsx` writes an Excel workbook with the exam name as heading, errata rows (generated time, course, submission deadline), a bold column-header row, and one row per student (sorted by last name): student id, name, submitted `Y`/`N` — followed by two totals rows (`Submitted` / `No submission`) using `COUNTIF` formulas over the `Submitted` column, plus a `Submission rate` row dividing the submitted total by the combined total (percentage-formatted). If omitted, you are prompted (`Output file (.json, .md or .xlsx):`); empty input prints the Markdown report to stdout instead of writing a file. Unsupported extensions error with `Use .json, .md or .xlsx`.
+- `--attachments <yes|no>` — `yes` downloads every submission attachment to `<output-stem>_files/` next to the output file (named `<userId>_<filename>`, sanitized), referenced as relative `local_files` in JSON and `[local]` links in Markdown; `no` records filenames/URLs/sizes only and creates no directory. If omitted, you are prompted (`Download submission attachments?` Yes/No). Individual download failures warn and keep the remote Canvas URL; the export continues. When printing to stdout (no output file) nothing is downloaded and a warning is printed.
+
+Flow: authenticate → resolve course → resolve assignment (`--exam`, then `--assignment`, then target exam used directly) → resolve attachments choice → `GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions?per_page=100&include[]=user&include[]=submission_comments&include[]=submission_history&include[]=attachments` (paginated) + `GET /api/v1/courses/:course_id/users?enrollment_type=student` to include enrolled students with no submission (marked `Unsubmitted`) → optionally download attachments with the API token → write file or print.
+
+With a fresh target exam set (see `exams target`) and no `--course`/`--exam`/`--assignment` flags, no pickers open at all: the target course and exam are used directly (`Using target course …` / `Using target exam …` is printed). `--course` still overrides the course (and then the target exam no longer applies); `--exam`/`--assignment` still override the exam.
+
+Plagiarism note: the dedicated Originality Report endpoints (`/api/lti/.../originality_report`) require LTI JWT tokens, not user API tokens, so they cannot be fetched here. This command surfaces everything the REST submission payload exposes (`turnitin_data` per file: `similarity_score`, `status`, `state`, overlaps, report URLs; plus any passthrough `originality_*`/`vericite` keys). The schemas use `.passthrough()` so new fields are preserved in `.json` automatically.
+
+Examples:
+
+```
+canvasmagicks exams ls --course VT2025-KD413A-K3548
+canvasmagicks exams get --course VT2025-KD413A-K3548 --assignment 12345 --output exam.json --attachments no
+canvasmagicks exams get --assignment 12345 --output exam.md --attachments yes
+```
+
+## exams target
+
+Sets the "target" exam. Like `canvasmagicks course` does for courses (and `page target` for pages), this pins an assignment so `exams get` defaults to it. The target is **persisted for one hour** and is **linked to the course**: if the target course changes, the target exam is forgotten.
+
+```
+canvasmagicks exams target [--course <code>] [--exam <id>]
+```
+
+- `--course <code>` / `-c <code>` — choose the exam from this course code, overriding the saved default course.
+- `--exam <id>` / `-e <id>` — set the target exam directly by its assignment id (e.g. `canvasmagicks exams target --exam 150558`), skipping the picker. The id comes from `canvasmagicks exams ls` and is validated against the resolved course.
+
+When run interactively it loads the course's assignments and lets you type to narrow the list, pinning the current target exam at the top (press ENTER to keep it).
+
+Setting the target exam also saves its course as the global default course (same as running `canvasmagicks course`), so subsequent `exams get` / `exams ls` runs — and other commands — resolve the course without prompting. The target exam itself is what lets `exams get` skip the assignment picker as well.

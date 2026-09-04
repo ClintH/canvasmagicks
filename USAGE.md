@@ -96,3 +96,35 @@ Export Canvas pages as Markdown.
 ```
 canvasmagicks page export [--output <path>] [--course <code>] [--page <slug>] [--dry-run]
 ```
+
+## exams ls
+
+List assignments in a course.
+
+```
+canvasmagicks exams ls [--course <code>]
+```
+
+- `--course <code>` / `-c` — course code.
+
+## exams get
+
+Download all submissions for an assignment.
+
+```
+canvasmagicks exams get [--course <code>] [--assignment <id>] [--exam <id>] [--output <path>] [--attachments <yes|no>]
+```
+
+- `--course <code>` / `-c` — course code.
+- `--assignment <id>` / `-a` — assignment id (see `canvasmagicks exams ls`). Prompts with a picker if omitted.
+- `--exam <id>` / `-e` — exam (assignment) id, overriding `--assignment` and the target exam.
+- `--output <path>` / `-o` — **required**; `.json` writes full submissions, `.md` writes Markdown (one `# <student>` section each, sorted by last name), `.xlsx` writes an Excel sheet (one row per student: id, name, submitted Y/N). Prompts if omitted; empty prints to stdout.
+- `--attachments <yes|no>` — download attachment binaries next to the output (`<name>_files/`). `no` records links only. Prompted if omitted.
+
+## exams target
+
+Pin a target exam (cached 1h, tied to course).
+
+```
+canvasmagicks exams target [--course <code>] [--exam <id>]
+```

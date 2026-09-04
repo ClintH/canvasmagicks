@@ -118,3 +118,89 @@ export const UpdatePageInputSchema = z.object({
   published: z.boolean().optional(),
 });
 export type UpdatePageInput = z.infer<typeof UpdatePageInputSchema>;
+
+// ---------------------------------------------------------------------------
+// Exams (assignments + submissions)
+// ---------------------------------------------------------------------------
+
+export const AssignmentSchema = z
+  .object({
+    id: z.coerce.number(),
+    name: z.string(),
+    due_at: z.string().nullable().optional(),
+    points_possible: z.number().nullable().optional(),
+    submission_types: z.array(z.string()).nullable().optional(),
+    workflow_state: z.string().nullable().optional(),
+    published: z.boolean().nullable().optional(),
+    html_url: z.string().nullable().optional(),
+    needs_grading_count: z.coerce.number().nullable().optional(),
+    has_submitted_submissions: z.boolean().nullable().optional(),
+  })
+  .passthrough();
+export type Assignment = z.infer<typeof AssignmentSchema>;
+
+export const SubmissionUserSchema = z
+  .object({
+    id: z.coerce.number(),
+    name: z.string(),
+    sortable_name: z.string().nullable().optional(),
+    login_id: z.string().nullable().optional(),
+    email: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type SubmissionUser = z.infer<typeof SubmissionUserSchema>;
+
+export const SubmissionAttachmentSchema = z
+  .object({
+    id: z.coerce.number(),
+    filename: z.string().nullable().optional(),
+    display_name: z.string().nullable().optional(),
+    "content-type": z.string().nullable().optional(),
+    content_type: z.string().nullable().optional(),
+    size: z.coerce.number().nullable().optional(),
+    url: z.string(),
+    created_at: z.string().nullable().optional(),
+    updated_at: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type SubmissionAttachment = z.infer<typeof SubmissionAttachmentSchema>;
+
+export const SubmissionCommentSchema = z
+  .object({
+    id: z.coerce.number(),
+    author_id: z.coerce.number().nullable().optional(),
+    author_name: z.string().nullable().optional(),
+    comment: z.string(),
+    created_at: z.string(),
+    attachments: z.array(SubmissionAttachmentSchema).nullable().optional(),
+  })
+  .passthrough();
+export type SubmissionComment = z.infer<typeof SubmissionCommentSchema>;
+
+export const SubmissionSchema = z
+  .object({
+    id: z.coerce.number().nullable().optional(),
+    assignment_id: z.coerce.number().nullable().optional(),
+    user_id: z.coerce.number(),
+    user: SubmissionUserSchema.nullable().optional(),
+    submitted_at: z.string().nullable().optional(),
+    attempt: z.coerce.number().nullable().optional(),
+    workflow_state: z.string().nullable().optional(),
+    late: z.boolean().nullable().optional(),
+    missing: z.boolean().nullable().optional(),
+    excused: z.boolean().nullable().optional(),
+    score: z.number().nullable().optional(),
+    grade: z.string().nullable().optional(),
+    submission_type: z.string().nullable().optional(),
+    body: z.string().nullable().optional(),
+    url: z.string().nullable().optional(),
+    attachments: z.array(SubmissionAttachmentSchema).nullable().optional(),
+    submission_comments: z.array(SubmissionCommentSchema).nullable().optional(),
+    submission_history: z.array(z.unknown()).nullable().optional(),
+    turnitin_data: z.record(z.string(), z.unknown()).nullable().optional(),
+    html_url: z.string().nullable().optional(),
+    preview_url: z.string().nullable().optional(),
+    media_comment: z.unknown().nullable().optional(),
+  })
+  .passthrough();
+export type Submission = z.infer<typeof SubmissionSchema>;

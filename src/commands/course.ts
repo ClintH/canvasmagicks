@@ -1,6 +1,7 @@
 import { loadConfig, patchConfig } from "../lib/config";
 import { resolveCourse } from "../lib/course";
 import { getActiveTargetPage, clearTargetPage } from "../lib/target-page";
+import { getActiveTargetExam, clearTargetExam } from "../lib/target-exam";
 
 export async function runCourse(): Promise<void> {
   const config = await loadConfig();
@@ -17,10 +18,14 @@ export async function runCourse(): Promise<void> {
     return;
   }
 
-  // If the target course is changing, the bound target page is no longer valid.
+  // If the target course is changing, the bound target page/exam are no longer valid.
   const activeTarget = await getActiveTargetPage();
   if (activeTarget && activeTarget.courseId !== resolved.id) {
     await clearTargetPage();
+  }
+  const activeExam = await getActiveTargetExam();
+  if (activeExam && activeExam.courseId !== resolved.id) {
+    await clearTargetExam();
   }
 
   await patchConfig({

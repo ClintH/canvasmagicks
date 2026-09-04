@@ -11,7 +11,7 @@ export class CanvasApiError extends Error {
   }
 }
 
-type Params = Record<string, string | number | boolean | undefined>;
+type Params = Record<string, string | number | boolean | string[] | undefined>;
 
 // Builds an `application/x-www-form-urlencoded` body where each key is namespaced
 // under `prefix`, e.g. `{ title: "x" }` with prefix "calendar_event" becomes
@@ -47,7 +47,12 @@ export class CanvasClient {
     if (!params) return `${this.base}${full}`;
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) {
-      if (v !== undefined) sp.set(k, String(v));
+      if (v === undefined) continue;
+      if (Array.isArray(v)) {
+        for (const item of v) sp.append(k, String(item));
+      } else {
+        sp.set(k, String(v));
+      }
     }
     const qs = sp.toString();
     return qs ? `${this.base}${full}?${qs}` : `${this.base}${full}`;
