@@ -2,6 +2,8 @@ import { loadConfig, patchConfig } from "../lib/config";
 import { resolveCourse } from "../lib/course";
 import { getActiveTargetPage, clearTargetPage } from "../lib/target-page";
 import { getActiveTargetExam, clearTargetExam } from "../lib/target-exam";
+import { getActiveTargetStudent, clearTargetStudent } from "../lib/target-student";
+import { getActiveTargetGroup, clearTargetGroup } from "../lib/target-group";
 
 export async function runCourse(): Promise<void> {
   const config = await loadConfig();
@@ -26,6 +28,14 @@ export async function runCourse(): Promise<void> {
   const activeExam = await getActiveTargetExam();
   if (activeExam && activeExam.courseId !== resolved.id) {
     await clearTargetExam();
+  }
+  const activeStudent = await getActiveTargetStudent();
+  if (activeStudent && activeStudent.courseId !== resolved.id) {
+    await clearTargetStudent();
+  }
+  const activeGroup = await getActiveTargetGroup();
+  if (activeGroup && activeGroup.courseId !== resolved.id) {
+    await clearTargetGroup();
   }
 
   await patchConfig({

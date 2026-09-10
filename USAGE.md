@@ -2,6 +2,8 @@
 
 For full details see `MANUAL.md`. All interactive prompts have CLI flags to skip them.
 
+# calendar
+
 ## calendar translate
 
 Translate an activities JSON file to Markdown or iCal.
@@ -57,13 +59,15 @@ Delete all calendar events in a course (asks for confirmation).
 canvasmagicks calendar nuke [--course <code>] [--dry-run]
 ```
 
-## course
+# course
 
 Set the default course.
 
 ```
 canvasmagicks course
 ```
+
+# page
 
 ## page ls
 
@@ -97,6 +101,8 @@ Export Canvas pages as Markdown.
 canvasmagicks page export [--output <path>] [--course <code>] [--page <slug>] [--dry-run]
 ```
 
+# exams
+
 ## exams ls
 
 List assignments in a course.
@@ -128,3 +134,83 @@ Pin a target exam (cached 1h, tied to course).
 ```
 canvasmagicks exams target [--course <code>] [--exam <id>]
 ```
+
+# students
+
+## students ls
+
+List the students enrolled in a course.
+
+```
+canvasmagicks students ls [--course <code>] [--all]
+```
+
+- `--course <code>` / `-c` — course code.
+- `--all` — include inactive/completed enrollments (default: active/invited only).
+
+## students export
+
+Export the course roster (or one target student) to JSON, Markdown or Excel.
+
+```
+canvasmagicks students export [--course <code>] [--student <id>] [--all] [--output <path>]
+```
+
+- `--course <code>` / `-c` — course code.
+- `--student <id>` / `-s` — student user id, overriding the target student. Omit to export the whole roster (or the target student, if set).
+- `--all` — include inactive/completed enrollments.
+- `--output <path>` / `-o` — `.json`, `.md` or `.xlsx`. Prompts if omitted; empty prints Markdown to stdout.
+
+## students target
+
+Pin a target student (cached 1h, tied to course).
+
+```
+canvasmagicks students target [--course <code>] [--student <id>]
+```
+
+# groups
+
+## groups ls
+
+List the groups in a group set (group category).
+
+```
+canvasmagicks groups ls [--course <code>] [--category <id>]
+```
+
+- `--course <code>` / `-c` — course code.
+- `--category <id>` — group set id, overriding the target group set. Prompts with a picker if omitted.
+
+## groups export
+
+Export a group set's groups and members to JSON, Markdown or Excel.
+
+```
+canvasmagicks groups export [--course <code>] [--category <id>] [--output <path>]
+```
+
+- `--output <path>` / `-o` — `.json`, `.md` or `.xlsx`. Prompts if omitted; empty prints Markdown to stdout.
+
+## groups target
+
+Pin a target group set (cached 1h, tied to course).
+
+```
+canvasmagicks groups target [--course <code>] [--category <id>]
+```
+
+## groups create
+
+Create a new group set and auto-assign active students to groups (`jumble`: tries to avoid re-pairing students who've shared a group before).
+
+```
+canvasmagicks groups create [--course <code>] [--name <text>] [--group-size <n> | --group-count <n>] [--group-prefix <text>] [--history <ids>] [--dry-run]
+```
+
+- `--name <text>` — name for the new group set. Prompts if omitted.
+- `--group-size <n>` — target students per group. If neither this nor `--group-count` is given, prompts to choose sizing mode then asks for the number.
+- `--group-count <n>` — number of groups, overriding `--group-size`.
+- `--group-prefix <text>` — name prefix for created groups (default `Group`, giving `Group 1`, `Group 2`, ...).
+- `--history <ids>` — comma-separated ids of existing group sets whose pairings should be avoided. Pass an empty string for no history. Prompts with a checklist (existing group sets, all checked by default) if omitted.
+- `--dry-run` — preview the planned groups and conflict count without creating anything in Canvas. Always asks for confirmation before writing when not a dry run.

@@ -250,3 +250,115 @@ canvasmagicks exams target [--course <code>] [--exam <id>]
 When run interactively it loads the course's assignments and lets you type to narrow the list, pinning the current target exam at the top (press ENTER to keep it).
 
 Setting the target exam also saves its course as the global default course (same as running `canvasmagicks course`), so subsequent `exams get` / `exams ls` runs — and other commands — resolve the course without prompting. The target exam itself is what lets `exams get` skip the assignment picker as well.
+
+## students ls
+
+Lists the students enrolled in a course (id, name, login id, enrollment state).
+
+```
+canvasmagicks students ls [--course <code>] [--all]
+```
+
+- `--course <code>` / `-c <code>` — course code, overriding the saved default course.
+- `--all` — include inactive/completed enrollments. By default only active/invited enrollments are listed (Canvas's default `enrollment_state` filter on the users endpoint).
+
+Flow: authenticate → resolve course (target student's course if a fresh target exists, else `--course` or saved default) → `GET /api/v1/courses/:course_id/users?enrollment_type[]=student&include[]=enrollments&include[]=email` (paginated).
+
+## students export
+
+Exports the course roster — or a single student — to JSON, Markdown or Excel.
+
+```
+canvasmagicks students export [--course <code>] [--student <id>] [--all] [--output <path>]
+```
+
+- `--course <code>` / `-c <code>` — course code, overriding the saved default course.
+- `--student <id>` / `-s <id>` — numeric student user id, overriding the target student. If omitted, exports the target student (if a fresh one is set) or otherwise the whole roster.
+- `--all` — include inactive/completed enrollments.
+- `--output <path>` / `-o <path>` — output file. `.json` writes the full student objects (pretty-printed, passthrough fields preserved); `.md` writes one `## <name>` section per student (sorted by last name) with user id, login, email, SIS id and enrollment state; `.xlsx` writes a header row followed by one row per student. If omitted, you are prompted; empty input prints the Markdown report to stdout. Unsupported extensions error with `Use .json, .md or .xlsx`.
+
+Flow: authenticate → resolve course → `GET .../users` (as in `students ls`) → narrow to one student via `--student`, else the target student, else the full list → write file or print.
+
+## students target
+
+Sets the "target" student — like `exams target` does for assignments — so `students export` defaults to it. Persisted for one hour, linked to the course.
+
+```
+canvasmagicks students target [--course <code>] [--student <id>]
+```
+
+- `--course <code>` / `-c <code>` — choose the student from this course code, overriding the saved default course.
+- `--student <id>` / `-s <id>` — set the target student directly by user id, skipping the picker.
+
+Setting the target student also saves its course as the global default course, and clears any target exam/page/group set bound to a different course (see `canvasmagicks course`).
+
+## groups ls
+
+Lists the groups within one group set (group category), with member counts.
+
+```
+canvasmagicks groups ls [--course <code>] [--category <id>]
+```
+
+- `--course <code>` / `-c <code>` — course code, overriding the saved default course.
+- `--category <id>` — numeric group set id, overriding the target group set. If omitted, uses the target group set (if fresh) or opens a searchable picker over the course's group sets.
+
+Flow: authenticate → resolve course → resolve group set (`--category`, else target, else picker) → `GET /api/v1/group_categories/:group_category_id/groups?per_page=100` (paginated).
+
+## groups export
+
+Exports one group set's groups and members to JSON, Markdown or Excel.
+
+```
+canvasmagicks groups export [--course <code>] [--category <id>] [--output <path>]
+```
+
+- `--course <code>` / `-c <code>` — course code, overriding the saved default course.
+- `--category <id>` — group set id, same resolution as `groups ls`.
+- `--output <path>` / `-o <path>` — output file. `.json` writes each group with its `members` array embedded; `.md` writes one `## <group name>` section per group (sorted by name) listing members; `.xlsx` writes one row per (group, member) pair. If omitted, you are prompted; empty input prints the Markdown report to stdout.
+
+Flow: resolve course and group set as in `groups ls` → list the group set's groups → `GET /api/v1/groups/:group_id/users?per_page=100` for each group (paginated; a failure on one group warns and records it as having no members rather than aborting the export) → write file or print.
+
+## groups target
+
+Sets the "target" group set — like `exams target` does for assignments — so `groups ls`/`groups export` default to it. Persisted for one hour, linked to the course.
+
+```
+canvasmagicks groups target [--course <code>] [--category <id>]
+```
+
+- `--course <code>` / `-c <code>` — choose the group set from this course code, overriding the saved default course.
+- `--category <id>` — set the target group set directly by id, skipping the picker.
+
+Setting the target group set also saves its course as the global default course, and clears any target exam/page/student bound to a different course.
+
+## groups create
+
+Creates a new group set (group category) in a course and auto-assigns its active students to newly created groups. The only assignment strategy today is **jumble**: a randomized algorithm that tries to avoid putting two students in the same group if they've already shared a group in one or more existing group sets you choose as "history". This command writes real data to Canvas (a group category, groups, and group memberships) and always asks for confirmation before doing so, unless `--dry-run` is given.
+
+```
+canvasmagicks groups create [--course <code>] [--name <text>] [--group-size <n> | --group-count <n>] [--group-prefix <text>] [--history <ids>] [--dry-run]
+```
+
+- `--course <code>` / `-c <code>` — course code, overriding the saved default course.
+- `--name <text>` — name for the new group set. Prompted if omitted.
+- `--group-size <n>` — target number of students per group; the number of groups is `ceil(activeStudents / n)`, with the remainder spread across the first groups so sizes differ by at most one.
+- `--group-count <n>` — number of groups directly, overriding `--group-size`; students are divided as evenly as possible. If it exceeds the number of active students, it's clamped down (one student per group).
+- If neither `--group-size` nor `--group-count` is given, you're first asked to choose "by students per group" or "by number of groups", then prompted for the number.
+- `--group-prefix <text>` — name prefix for created groups (default `Group`), giving `Group 1`, `Group 2`, ... in assignment order.
+- `--history <ids>` — comma-separated ids of existing group sets in the course whose group memberships count as "have already been grouped together". Unknown ids are ignored with a warning. Pass an empty string (`--history ""`) to opt out of history entirely (pure random jumble). If omitted, and the course has existing group sets, you're shown a checklist of them (all checked by default) to choose which ones count.
+- `--dry-run` — prints the planned group set name, size, and the proposed groups (with member names) and the number of unavoidable repeat pairings, then stops. No confirmation prompt is shown and nothing is created in Canvas.
+
+Only **active students** (`students ls`'s default enrollment-state filter — active/invited) are considered; inactive/completed enrollments are never auto-assigned to a group.
+
+Flow: authenticate → resolve course → resolve/prompt group set name → list active students (`GET .../courses/:course_id/users?enrollment_type[]=student`) → resolve group sizing → resolve history group sets (`--history`, else a checklist over `GET .../courses/:course_id/group_categories`) → for each selected history group set, list its groups and each group's members (`GET .../group_categories/:id/groups`, `GET .../groups/:id/users`) to build the set of student pairs that have already been grouped → run the jumble algorithm (up to 200 randomized greedy passes, keeping the one with fewest repeat pairings; stops early at zero) → print the plan and, if not `--dry-run`, ask for confirmation → on confirmation: `POST /api/v1/courses/:course_id/group_categories` (flat `name` param, not nested), then for each planned group `POST /api/v1/group_categories/:group_category_id/groups` (flat `name`), then for each student `POST /api/v1/groups/:group_id/memberships` (flat `user_id`). Per-student membership failures warn and are counted but don't stop the run; the final summary reports how many groups and memberships succeeded.
+
+Note on optimality: with few existing group sets and generously-sized new groups, zero repeat pairings is often impossible by pigeonhole (e.g. reshuffling 12 students from 3 groups of 4 into 3 new groups of 4 always forces at least 3 repeat pairs) — the reported conflict count is the best the algorithm found across its attempts, not necessarily provably optimal, but observed to reach the true minimum on small cases.
+
+Examples:
+
+```
+canvasmagicks groups create --course VT2025-KD413A-K3548 --name "Project groups" --group-size 4
+canvasmagicks groups create --name "Lab groups" --group-count 6 --history ""
+canvasmagicks groups create --name "Sprint 2 groups" --group-size 3 --history 41,42 --dry-run
+```

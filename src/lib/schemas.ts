@@ -177,6 +177,68 @@ export const SubmissionCommentSchema = z
   .passthrough();
 export type SubmissionComment = z.infer<typeof SubmissionCommentSchema>;
 
+// ---------------------------------------------------------------------------
+// Students (course enrollments)
+// ---------------------------------------------------------------------------
+
+export const StudentEnrollmentSchema = z
+  .object({
+    type: z.string().optional(),
+    enrollment_state: z.string().optional(),
+  })
+  .passthrough();
+export type StudentEnrollment = z.infer<typeof StudentEnrollmentSchema>;
+
+export const StudentSchema = z
+  .object({
+    id: z.coerce.number(),
+    name: z.string(),
+    sortable_name: z.string().nullable().optional(),
+    login_id: z.string().nullable().optional(),
+    email: z.string().nullable().optional(),
+    sis_user_id: z.string().nullable().optional(),
+    enrollments: z.array(StudentEnrollmentSchema).nullable().optional(),
+  })
+  .passthrough();
+export type Student = z.infer<typeof StudentSchema>;
+
+// ---------------------------------------------------------------------------
+// Groups (group sets / categories, groups, members)
+// ---------------------------------------------------------------------------
+
+export const GroupCategorySchema = z
+  .object({
+    id: z.coerce.number(),
+    name: z.string(),
+    self_signup: z.string().nullable().optional(),
+    group_limit: z.coerce.number().nullable().optional(),
+  })
+  .passthrough();
+export type GroupCategory = z.infer<typeof GroupCategorySchema>;
+
+export const GroupSchema = z
+  .object({
+    id: z.coerce.number(),
+    name: z.string(),
+    group_category_id: z.coerce.number().nullable().optional(),
+    members_count: z.coerce.number().nullable().optional(),
+    max_membership: z.coerce.number().nullable().optional(),
+    workflow_state: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type Group = z.infer<typeof GroupSchema>;
+
+export const GroupMemberSchema = z
+  .object({
+    id: z.coerce.number(),
+    name: z.string(),
+    sortable_name: z.string().nullable().optional(),
+    login_id: z.string().nullable().optional(),
+    email: z.string().nullable().optional(),
+  })
+  .passthrough();
+export type GroupMember = z.infer<typeof GroupMemberSchema>;
+
 export const SubmissionSchema = z
   .object({
     id: z.coerce.number().nullable().optional(),
