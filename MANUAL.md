@@ -294,7 +294,7 @@ Setting the target student also saves its course as the global default course, a
 
 ## groups ls
 
-Lists the groups within one group set (group category), with member counts.
+Lists the groups within one group set (group category), with member names.
 
 ```
 canvasmagicks groups ls [--course <code>] [--category <id>]
@@ -303,7 +303,7 @@ canvasmagicks groups ls [--course <code>] [--category <id>]
 - `--course <code>` / `-c <code>` — course code, overriding the saved default course.
 - `--category <id>` — numeric group set id, overriding the target group set. If omitted, uses the target group set (if fresh) or opens a searchable picker over the course's group sets.
 
-Flow: authenticate → resolve course → resolve group set (`--category`, else target, else picker) → `GET /api/v1/group_categories/:group_category_id/groups?per_page=100` (paginated).
+Flow: authenticate → resolve course → resolve group set (`--category`, else target, else picker) → `GET /api/v1/group_categories/:group_category_id/groups?per_page=100` (paginated) → `GET /api/v1/groups/:group_id/users?per_page=100` for each group (paginated; a failure on one group warns and falls back to its member count).
 
 ## groups export
 

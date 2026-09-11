@@ -1,7 +1,7 @@
 import { command, option, optional, string } from "cmd-ts";
 import { loadConfig } from "../../lib/config";
 import { resolveCourse } from "../../lib/course";
-import { resolveGroupCategory, listGroupsInCategory } from "../../lib/groups";
+import { resolveGroupCategory, listGroupsInCategory, listGroupMembers } from "../../lib/groups";
 import { resolveTargetCourse } from "../../lib/target-group";
 
 export async function runGroupsLs(opts: { course?: string; category?: string }): Promise<void> {
@@ -45,8 +45,16 @@ export async function runGroupsLs(opts: { course?: string; category?: string }):
     }
     console.log(`Groups in '${category.name}':`);
     for (const g of groups) {
-      const count = g.members_count != null ? `${g.members_count} member(s)` : "member count unknown";
-      console.log(`  ${g.id}\t${g.name}  [${count}]`);
+      try {
+        const members = await listGroupMembers(config, g.id);
+        const sortedNames = [...members].sort((a, b) => a.name.localeCompare(b.name)).map((m) => m.name);
+        const display = sortedNames.length > 0 ? sortedNames.join(", ") : "no members";
+        console.log(`  ${g.id}\t${g.name} ${display}`);
+      } catch (err) {
+        console.warn(`Warning: could not list members of '${g.name}': ${(err as Error).message}`);
+        const count = g.members_count != null ? `${g.members_count} member(s)` : "member count unknown";
+        console.log(`  ${g.id}\t${g.name}  [${count}]`);
+      }
     }
   } catch (err) {
     console.error(`Failed to load groups: ${(err as Error).message}`);
