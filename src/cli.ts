@@ -17,6 +17,7 @@ import { calendarCmd } from "./commands/calendar";
 import { examsCmd } from "./commands/exams";
 import { studentsCmd } from "./commands/students";
 import { groupsCmd } from "./commands/groups";
+import { generateCmd } from "./commands/generate";
 
 const auth = command({
   name: "auth",
@@ -80,6 +81,7 @@ const app = subcommands({
     exams: examsCmd,
     students: studentsCmd,
     groups: groupsCmd,
+    generate: generateCmd,
   },
 });
 
