@@ -214,3 +214,18 @@ canvasmagicks groups create [--course <code>] [--name <text>] [--group-size <n> 
 - `--group-prefix <text>` — name prefix for created groups (default `Group`, giving `Group 1`, `Group 2`, ...).
 - `--history <ids>` — comma-separated ids of existing group sets whose pairings should be avoided. Pass an empty string for no history. Prompts with a checklist (existing group sets, all checked by default) if omitted.
 - `--dry-run` — preview the planned groups and conflict count without creating anything in Canvas. Always asks for confirmation before writing when not a dry run.
+
+# generate
+
+## generate random-questions
+
+Generate a DOCX handout with one random question per section per student.
+
+```
+canvasmagicks generate random-questions --students <path> --questions <path> --output <path> [--pages-per-student <n>]
+```
+
+- `--students <path>` — **required**; JSON file of students (e.g. from `students export --output students.json`). Only the `name` field is used.
+- `--questions <path>` — **required**; JSON file: an array of `{ section, question, id }`.
+- `--output <path>` / `-o` — **required**; destination file, must end in `.docx`.
+- `--pages-per-student <n>` — number of pages to spread each student's questions across (default `1`); must be at least `1`. Each student gets a `# <name>` heading (continuation pages as `<name> (cont.)`) with page breaks and spacing for written answers.
