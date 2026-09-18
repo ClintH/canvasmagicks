@@ -219,13 +219,31 @@ canvasmagicks groups create [--course <code>] [--name <text>] [--group-size <n> 
 
 ## generate random-questions
 
-Generate a DOCX handout with one random question per section per student.
+Generate a DOCX handout with one random question per section per student, rendered from a
+[docx-templates](https://github.com/guigrpa/docx-templates) DOCX template. The output interleaves
+one exam-questions page per student with an instructions page.
 
 ```
-canvasmagicks generate random-questions --students <path> --questions <path> --output <path> [--pages-per-student <n>]
+canvasmagicks generate random-questions --students <path> --questions <path> --template <path> --output <path>
 ```
 
 - `--students <path>` — **required**; JSON file of students (e.g. from `students export --output students.json`). Only the `name` field is used.
 - `--questions <path>` — **required**; JSON file: an array of `{ section, question, id }`.
+- `--template <path>` — **required**; DOCX template file. See `generate random-questions-template` for a starter that matches the expected data shape.
 - `--output <path>` / `-o` — **required**; destination file, must end in `.docx`.
-- `--pages-per-student <n>` — number of pages to spread each student's questions across (default `1`); must be at least `1`. Each student gets a `# <name>` heading (continuation pages as `<name> (cont.)`) with page breaks and spacing for written answers.
+
+The template is invoked with `data: { pages }`, where `pages` is a flat array alternating
+`{ kind: "exam", pageBreakBefore, studentName, questions: [{ section, question }] }` and
+`{ kind: "instructions", pageBreakBefore, studentName }` objects — one exam page and one
+instructions page per student, in order. Edit the starter template in Word to restyle it, reword
+the instructions, or change what's shown.
+
+## generate random-questions-template
+
+Write a starter DOCX template for `generate random-questions --template`.
+
+```
+canvasmagicks generate random-questions-template --output <path>
+```
+
+- `--output <path>` / `-o` — **required**; destination file, must end in `.docx`.

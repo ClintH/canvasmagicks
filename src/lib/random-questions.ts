@@ -1,10 +1,12 @@
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
+import { createReport } from "docx-templates";
 import {
   Document,
   Packer,
   Paragraph,
   TextRun,
+  PageBreak,
   HeadingLevel,
 } from "docx";
 
@@ -54,70 +56,109 @@ export function pickQuestionsForStudent(sections: Map<string, Question[]>): Ques
   return picked;
 }
 
-// Splits a student's assigned questions into `pageCount` roughly-even,
-// contiguous chunks — one chunk per page.
-function splitIntoPages<T>(items: T[], pageCount: number): T[][] {
-  const count = Math.max(1, pageCount);
-  const pages: T[][] = [];
-  const perPage = Math.ceil(items.length / count);
-  for (let i = 0; i < items.length; i += perPage) {
-    pages.push(items.slice(i, i + perPage));
+// A single page of the report: either a student's exam questions, or the
+// instruction page that follows it. Fed to the docx-templates template as
+// the `pages` loop variable.
+export type ReportQuestion = { section: string; question: string };
+export type ReportPage =
+  | {
+      kind: "exam";
+      pageBreakBefore: boolean;
+      studentName: string;
+      questions: ReportQuestion[];
+    }
+  | {
+      kind: "instructions";
+      pageBreakBefore: boolean;
+      studentName: string;
+    };
+
+// Builds the flat, interleaved page list: each student's exam-questions page
+// immediately followed by an instructions page.
+export function buildReportPages(
+  students: StudentName[],
+  questions: Question[],
+): ReportPage[] {
+  const sections = groupBySection(questions);
+  const pages: ReportPage[] = [];
+
+  for (const student of students) {
+    const assigned = pickQuestionsForStudent(sections);
+    pages.push({
+      kind: "exam",
+      pageBreakBefore: pages.length > 0,
+      studentName: student.name,
+      questions: assigned.map((q) => ({ section: q.section, question: q.question })),
+    });
+    pages.push({
+      kind: "instructions",
+      pageBreakBefore: true,
+      studentName: student.name,
+    });
   }
-  while (pages.length < count) pages.push([]);
+
   return pages;
 }
 
-// Usable page height in twips (A4, 1" margins), minus a rough allowance for
-// the heading — used to spread questions so there's room to write under each.
-const USABLE_PAGE_TWIPS = 15840 - 2 * 1440 - 720;
-const TWIPS_PER_QUESTION_TEXT = 300;
-const MIN_SPACING_AFTER = 300;
-
-function spacingAfterFor(questionsOnPage: number): number {
-  if (questionsOnPage <= 0) return MIN_SPACING_AFTER;
-  const remaining = USABLE_PAGE_TWIPS - questionsOnPage * TWIPS_PER_QUESTION_TEXT;
-  return Math.max(MIN_SPACING_AFTER, Math.floor(remaining / questionsOnPage));
-}
-
 export async function buildRandomQuestionsDocx(
+  template: Buffer,
   students: StudentName[],
   questions: Question[],
-  pagesPerStudent: number,
 ): Promise<Buffer> {
-  const sections = groupBySection(questions);
-  const children: Paragraph[] = [];
+  const pages = buildReportPages(students, questions);
+  const report = await createReport({
+    template,
+    data: { pages },
+    cmdDelimiter: "+++",
+    rejectNullish: true,
+  });
+  return Buffer.from(report);
+}
 
-  students.forEach((student, studentIndex) => {
-    const assigned = pickQuestionsForStudent(sections);
-    const pages = splitIntoPages(assigned, pagesPerStudent);
+// A starter template, matching the command structure `buildRandomQuestionsDocx`
+// expects: usable as-is with `--template`, or as a starting point to edit in
+// Word (e.g. to restyle the heading, or reword the instructions).
+export async function buildDefaultTemplateDocx(): Promise<Buffer> {
+  const doc = new Document({
+    sections: [
+      {
+        children: [
+          new Paragraph({ children: [new TextRun("+++FOR page IN pages+++")] }),
+          new Paragraph({ children: [new TextRun("+++IF $page.pageBreakBefore+++")] }),
+          new Paragraph({ children: [new PageBreak()] }),
+          new Paragraph({ children: [new TextRun("+++END-IF+++")] }),
 
-    pages.forEach((pageQuestions, pageIndex) => {
-      const isFirstPageOverall = studentIndex === 0 && pageIndex === 0;
-      children.push(
-        new Paragraph({
-          heading: HeadingLevel.HEADING_1,
-          pageBreakBefore: !isFirstPageOverall,
-          text: pageIndex === 0 ? student.name : `${student.name} (cont.)`,
-        }),
-      );
-
-      const spacingAfter = spacingAfterFor(pageQuestions.length);
-      for (const q of pageQuestions) {
-        children.push(
+          new Paragraph({ children: [new TextRun("+++IF $page.kind === 'exam'+++")] }),
           new Paragraph({
-            spacing: { before: 200, after: spacingAfter },
+            heading: HeadingLevel.HEADING_1,
+            children: [new TextRun("+++$page.studentName+++")],
+          }),
+          new Paragraph({ children: [new TextRun("+++FOR q IN $page.questions+++")] }),
+          new Paragraph({
+            spacing: { before: 200, after: 600 },
             children: [
-              new TextRun({ text: `${q.section}: `, bold: true }),
-              new TextRun({ text: q.question }),
+              new TextRun({ text: "+++$q.section+++: ", bold: true }),
+              new TextRun("+++$q.question+++"),
             ],
           }),
-        );
-      }
-    });
-  });
+          new Paragraph({ children: [new TextRun("+++END-FOR q+++")] }),
+          new Paragraph({ children: [new TextRun("+++END-IF+++")] }),
 
-  const doc = new Document({
-    sections: [{ children }],
+          new Paragraph({ children: [new TextRun("+++IF $page.kind === 'instructions'+++")] }),
+          new Paragraph({ heading: HeadingLevel.HEADING_1, text: "Instructions" }),
+          new Paragraph({
+            text: "Complete your assigned question in the space provided on the previous page.",
+          }),
+          new Paragraph({ text: "Write your name at the top of every page you turn in." }),
+          new Paragraph({
+            text: "You have the full class period. Raise your hand if you have questions.",
+          }),
+          new Paragraph({ children: [new TextRun("+++END-IF+++")] }),
+
+          new Paragraph({ children: [new TextRun("+++END-FOR page+++")] }),
+        ],
+      },
+    ],
   });
   return Packer.toBuffer(doc);
 }

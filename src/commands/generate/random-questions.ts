@@ -1,5 +1,5 @@
-import { command, option, optional, string, number } from "cmd-ts";
-import { writeFile } from "node:fs/promises";
+import { command, option, string } from "cmd-ts";
+import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
   loadStudentsFile,
@@ -10,18 +10,20 @@ import {
 export async function runGenerateRandomQuestions(opts: {
   students: string;
   questions: string;
+  template: string;
   output: string;
-  pagesPerStudent?: number;
 }): Promise<void> {
-  const pagesPerStudent = opts.pagesPerStudent ?? 1;
-  if (pagesPerStudent < 1) {
-    console.error("--pages-per-student must be at least 1.");
+  if (!opts.output.toLowerCase().endsWith(".docx")) {
+    console.error(`Output file must end in .docx: '${opts.output}'`);
     process.exitCode = 1;
     return;
   }
 
-  if (!opts.output.toLowerCase().endsWith(".docx")) {
-    console.error(`Output file must end in .docx: '${opts.output}'`);
+  let template: Buffer;
+  try {
+    template = await readFile(opts.template);
+  } catch (err) {
+    console.error(`Could not read template file '${opts.template}': ${(err as Error).message}`);
     process.exitCode = 1;
     return;
   }
@@ -54,7 +56,14 @@ export async function runGenerateRandomQuestions(opts: {
     return;
   }
 
-  const buffer = await buildRandomQuestionsDocx(students, questions, pagesPerStudent);
+  let buffer: Buffer;
+  try {
+    buffer = await buildRandomQuestionsDocx(template, students, questions);
+  } catch (err) {
+    console.error(`Could not render template '${opts.template}': ${(err as Error).message}`);
+    process.exitCode = 1;
+    return;
+  }
 
   const absOutput = resolve(opts.output);
   try {
@@ -81,19 +90,20 @@ export const generateRandomQuestions = command({
       long: "questions",
       description: "Questions JSON file: an array of { section, question, id }.",
     }),
+    template: option({
+      type: string,
+      long: "template",
+      description:
+        "DOCX template file (docx-templates syntax). See `generate random-questions-template` for a starter.",
+    }),
     output: option({
       type: string,
       long: "output",
       short: "o",
       description: "Destination .docx file.",
     }),
-    pagesPerStudent: option({
-      type: optional(number),
-      long: "pages-per-student",
-      description: "Number of pages to spread each student's questions across (default: 1).",
-    }),
   },
-  handler: async ({ students, questions, output, pagesPerStudent }) => {
-    await runGenerateRandomQuestions({ students, questions, output, pagesPerStudent });
+  handler: async ({ students, questions, template, output }) => {
+    await runGenerateRandomQuestions({ students, questions, template, output });
   },
 });
