@@ -143,6 +143,26 @@ export async function runGroupsCreate(opts: RunOptions): Promise<void> {
     return;
   }
 
+  const wantsExclusions = await confirm({
+    message: "Exclude any students from this group set?",
+    default: false,
+  });
+  if (wantsExclusions) {
+    const excludedIds = await checkbox<number>({
+      message: "Select students to exclude:",
+      choices: students.map((s) => ({ name: s.name, value: s.id })),
+    });
+    if (excludedIds.length > 0) {
+      const excluded = new Set(excludedIds);
+      students = students.filter((s) => !excluded.has(s.id));
+    }
+  }
+  if (students.length === 0) {
+    console.error("No students left to group after exclusions.");
+    process.exitCode = 1;
+    return;
+  }
+
   const sizing = await resolveSizing(students.length, opts);
   if (!sizing) return;
   const sizes = computeGroupSizes(students.length, sizing);
@@ -159,37 +179,48 @@ export async function runGroupsCreate(opts: RunOptions): Promise<void> {
   }
 
   const studentIds = students.map((s) => s.id);
-  const { groups, conflicts } = jumbleGroups(studentIds, sizes, hasHistoryPair(pairs));
   const byId = new Map(students.map((s) => [s.id, s]));
   const prefix = opts.groupPrefix?.trim() || "Group";
 
-  console.log(
-    `\nPlan: group set '${name}' with ${groups.length} group(s) for ${students.length} student(s) in '${resolved.course.name}'.`,
-  );
-  groups.forEach((group, i) => {
-    const memberNames = group.map((id) => byId.get(id)?.name ?? `#${id}`).join(", ");
-    console.log(`  ${prefix} ${i + 1} (${group.length}): ${memberNames}`);
-  });
-  if (historyCategories.length > 0) {
+  let groups: number[][];
+  let conflicts: number;
+  for (;;) {
+    ({ groups, conflicts } = jumbleGroups(studentIds, sizes, hasHistoryPair(pairs)));
+
     console.log(
-      conflicts === 0
-        ? "No repeat pairings from the selected history."
-        : `${conflicts} repeat pairing(s) could not be avoided given the group sizes and history.`,
+      `\nPlan: group set '${name}' with ${groups.length} group(s) for ${students.length} student(s) in '${resolved.course.name}'.`,
     );
-  }
+    groups.forEach((group, i) => {
+      const memberNames = group.map((id) => byId.get(id)?.name ?? `#${id}`).join(", ");
+      console.log(`  ${prefix} ${i + 1} (${group.length}): ${memberNames}`);
+    });
+    if (historyCategories.length > 0) {
+      console.log(
+        conflicts === 0
+          ? "No repeat pairings from the selected history."
+          : `${conflicts} repeat pairing(s) could not be avoided given the group sizes and history.`,
+      );
+    }
 
-  if (opts.dryRun) {
-    console.log("\n[dry-run] No changes made.");
-    return;
-  }
+    if (opts.dryRun) {
+      console.log("\n[dry-run] No changes made.");
+      return;
+    }
 
-  const proceed = await confirm({
-    message: `\nCreate this group set in '${resolved.course.name}'? This creates real groups and enrollments in Canvas.`,
-    default: false,
-  });
-  if (!proceed) {
-    console.log("Aborted. No changes made.");
-    return;
+    const action = await select<"create" | "reroll" | "abort">({
+      message: `\nCreate this group set in '${resolved.course.name}'?`,
+      choices: [
+        { name: "Create", value: "create" },
+        { name: "Re-roll (try a new random composition)", value: "reroll" },
+        { name: "Abort", value: "abort" },
+      ],
+    });
+    if (action === "reroll") continue;
+    if (action === "abort") {
+      console.log("Aborted. No changes made.");
+      return;
+    }
+    break;
   }
 
   const category = await createGroupCategory(config, courseId, name);
