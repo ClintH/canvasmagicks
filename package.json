@@ -13,7 +13,9 @@
     "whoami": "bun run src/index.ts whoami",
     "courses": "bun run src/index.ts courses",
     "link": "bun link",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "bun build src/index.ts --compile --outfile dist/canvasmagicks && (test \"$(uname)\" != Darwin || codesign -s - dist/canvasmagicks)",
+    "build:all": "bun run scripts/build.ts"
   },
   "dependencies": {
     "@inquirer/prompts": "8.6.0",
