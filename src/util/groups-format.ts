@@ -14,11 +14,23 @@ function formatGeneratedAt(generatedAt: Date): string {
   );
 }
 
+export type GroupsExportStyle = "default" | "flat";
+
+function groupNumber(group: Group): string {
+  const match = group.name.match(/(\d+)\s*$/);
+  return match ? match[1]! : group.name;
+}
+
+function compareGroups(a: Group, b: Group): number {
+  return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+}
+
 export function renderGroupsMarkdown(
   categoryName: string,
   courseName: string,
   groups: GroupWithMembers[],
   generatedAt: Date = new Date(),
+  style: GroupsExportStyle = "default",
 ): string {
   const lines: string[] = [];
   lines.push(`# ${categoryName} — groups`);
@@ -30,11 +42,18 @@ export function renderGroupsMarkdown(
     lines.push("");
     return lines.join("\n") + "\n";
   }
-  const sorted = [...groups].sort((a, b) => a.group.name.localeCompare(b.group.name));
+  const sorted = [...groups].sort((a, b) => compareGroups(a.group, b.group));
+  if (style === "flat") {
+    for (const { group, members } of sorted) {
+      const sortedMembers = [...members].sort((a, b) => a.name.localeCompare(b.name));
+      const memberList = sortedMembers.length === 0 ? "No members." : sortedMembers.map((m) => m.name).join(", ");
+      lines.push(`## ${groupNumber(group)}.\t${memberList}`);
+      lines.push("");
+    }
+    return lines.join("\n") + "\n";
+  }
   for (const { group, members } of sorted) {
     lines.push(`## ${group.name}`);
-    lines.push("");
-    lines.push(`_${members.length} member(s)_`);
     lines.push("");
     if (members.length === 0) {
       lines.push("No members.");
@@ -54,6 +73,7 @@ export async function renderGroupsXlsx(
   courseName: string,
   groups: GroupWithMembers[],
   generatedAt: Date = new Date(),
+  style: GroupsExportStyle = "default",
 ): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Groups");
@@ -62,10 +82,26 @@ export async function renderGroupsXlsx(
   ws.addRow([`Generated ${formatGeneratedAt(generatedAt)}`]);
   ws.addRow([`Course: ${courseName}`]);
   ws.addRow([]);
+
+  const sorted = [...groups].sort((a, b) => compareGroups(a.group, b.group));
+
+  if (style === "flat") {
+    const header = ws.addRow(["Group", "Members"]);
+    header.font = { bold: true };
+    for (const { group, members } of sorted) {
+      const sortedMembers = [...members].sort((a, b) => a.name.localeCompare(b.name));
+      const memberList = sortedMembers.length === 0 ? "(no members)" : sortedMembers.map((m) => m.name).join(", ");
+      ws.addRow([groupNumber(group), memberList]);
+    }
+    ws.getColumn(1).width = 12;
+    ws.getColumn(2).width = 60;
+    const buf = await wb.xlsx.writeBuffer();
+    return Buffer.from(buf as ArrayBuffer);
+  }
+
   const header = ws.addRow(["Group", "Member ID", "Member name", "Email"]);
   header.font = { bold: true };
 
-  const sorted = [...groups].sort((a, b) => a.group.name.localeCompare(b.group.name));
   for (const { group, members } of sorted) {
     if (members.length === 0) {
       ws.addRow([group.name, "—", "(no members)", ""]);

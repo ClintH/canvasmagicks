@@ -6,12 +6,18 @@ import { loadConfig } from "../../lib/config";
 import { resolveCourse } from "../../lib/course";
 import { resolveGroupCategory, listGroupsInCategory, listGroupMembers } from "../../lib/groups";
 import { resolveTargetCourse } from "../../lib/target-group";
-import { renderGroupsMarkdown, renderGroupsXlsx, type GroupWithMembers } from "../../util/groups-format";
+import {
+  renderGroupsMarkdown,
+  renderGroupsXlsx,
+  type GroupWithMembers,
+  type GroupsExportStyle,
+} from "../../util/groups-format";
 
 export async function runGroupsExport(opts: {
   course?: string;
   category?: string;
   output?: string;
+  style?: string;
 } = {}): Promise<void> {
   const config = await loadConfig();
   if (!config) {
@@ -63,6 +69,13 @@ export async function runGroupsExport(opts: {
     }
   }
 
+  if (opts.style !== undefined && opts.style !== "default" && opts.style !== "flat") {
+    console.error(`Unsupported style '${opts.style}'. Use 'default' or 'flat'.`);
+    process.exitCode = 1;
+    return;
+  }
+  const style: GroupsExportStyle = opts.style === "flat" ? "flat" : "default";
+
   let outputPath = opts.output?.trim() || "";
   if (outputPath === "") {
     outputPath = (
@@ -70,7 +83,7 @@ export async function runGroupsExport(opts: {
     ).trim();
   }
   if (outputPath === "") {
-    console.log(renderGroupsMarkdown(category.name, resolved.course.name, entries));
+    console.log(renderGroupsMarkdown(category.name, resolved.course.name, entries, new Date(), style));
     return;
   }
 
@@ -90,9 +103,9 @@ export async function runGroupsExport(opts: {
     const payload = entries.map((e) => ({ ...e.group, members: e.members }));
     content = JSON.stringify(payload, null, 2) + "\n";
   } else if (isXlsx) {
-    content = await renderGroupsXlsx(category.name, resolved.course.name, entries);
+    content = await renderGroupsXlsx(category.name, resolved.course.name, entries, new Date(), style);
   } else {
-    content = renderGroupsMarkdown(category.name, resolved.course.name, entries);
+    content = renderGroupsMarkdown(category.name, resolved.course.name, entries, new Date(), style);
   }
 
   try {
@@ -130,8 +143,13 @@ export const groupsExport = command({
       short: "o",
       description: "Output file path. Use .json for JSON, .md for Markdown or .xlsx for Excel (prompts if omitted; empty prints to stdout).",
     }),
+    style: option({
+      type: optional(string),
+      long: "style",
+      description: "Output style for Markdown/Excel: 'default' (one entry per member) or 'flat' (one line per group, '<group id>: <member 1>, <member 2>...'). Defaults to 'default'.",
+    }),
   },
-  handler: async ({ course, category, output }) => {
-    await runGroupsExport({ course, category, output });
+  handler: async ({ course, category, output, style }) => {
+    await runGroupsExport({ course, category, output, style });
   },
 });

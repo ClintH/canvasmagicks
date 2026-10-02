@@ -187,10 +187,11 @@ canvasmagicks groups ls [--course <code>] [--category <id>]
 Export a group set's groups and members to JSON, Markdown or Excel.
 
 ```
-canvasmagicks groups export [--course <code>] [--category <id>] [--output <path>]
+canvasmagicks groups export [--course <code>] [--category <id>] [--output <path>] [--style <style>]
 ```
 
 - `--output <path>` / `-o` — `.json`, `.md` or `.xlsx`. Prompts if omitted; empty prints Markdown to stdout.
+- `--style <style>` — output style for Markdown/Excel: `default` (one group heading/row per member) or `flat` (one heading/row per group, `<group number>: <member 1>, <member 2>...`, where `<group number>` is the trailing number in the group's name, e.g. `Group 2` → `2`). Defaults to `default`. Ignored for `.json` output.
 
 ## groups target
 
